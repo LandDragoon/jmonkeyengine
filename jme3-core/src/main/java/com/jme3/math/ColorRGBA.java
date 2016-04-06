@@ -638,7 +638,7 @@ public final class ColorRGBA implements Savable, Cloneable, java.io.Serializable
      * @return an array of ColorRGBA objects
      */
     public static ColorRGBA[] toColorRGBA(double[] data) {
-    	assert data.length % 4 == 0;
+        assert data.length % 4 == 0;
         ColorRGBA[] colors = new ColorRGBA[data.length / 4];
         for (int i = 0; i < colors.length; i++) {
             float r = (float) data[i * 4];

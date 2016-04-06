@@ -1079,9 +1079,13 @@ public final class Vector3f implements Savable, Cloneable, java.io.Serializable 
         throw new IllegalArgumentException("index must be either 0, 1 or 2");
     }
 
-    
+    /**
+     * Gets the Vector3f's that are stored in the given data array.
+     * @param data an array of doubles. The amount of entries should be divisable by 3.
+     * @return an array of Vector3f objects
+     */
     public static Vector3f[] toVector3(double[] data) {
-    	assert data.length % 3 == 0;
+        assert data.length % 3 == 0;
         Vector3f[] vectors = new Vector3f[data.length / 3];
         for (int i = 0; i < vectors.length; i++) {
             float x = (float) data[i * 3];
