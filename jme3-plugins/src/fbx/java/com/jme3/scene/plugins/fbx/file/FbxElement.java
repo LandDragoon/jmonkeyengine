@@ -117,6 +117,21 @@ public class FbxElement {
             return props;
         }
         
+        /**
+         * @return string: the subclassname of this element, as stored in the properties.
+         */
+        public String getSubclassName() {
+            String subclassName = null;
+            if (this.propertiesTypes.length == 3) {
+                // FBX 7.x (all objects start with Long ID)
+                subclassName = (String) this.properties.get(2);
+            } else if (this.propertiesTypes.length == 2) {
+                // FBX 6.x (objects only have name and subclass)
+                subclassName = (String) this.properties.get(1);
+            }
+            return subclassName;
+        }
+        
         @Override
         public String toString() {
             return "FBXElement[id=" + id + ", numProps=" + properties.size() + ", numChildren=" + children.size() + "]";

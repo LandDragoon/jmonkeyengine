@@ -156,18 +156,7 @@ public final class FbxObjectFactory {
      */
     public static FbxObject createObject(FbxElement element, AssetManager assetManager, String sceneFolderName) {
         String elementName = element.id;
-        String subclassName;
-        
-        if (element.propertiesTypes.length == 3) {
-            // FBX 7.x (all objects start with Long ID)
-            subclassName = (String) element.properties.get(2);
-        } else if (element.propertiesTypes.length == 2) {
-            // FBX 6.x (objects only have name and subclass)
-            subclassName = (String) element.properties.get(1);
-        } else {
-            // Not an object or invalid data.
-            return null;
-        }
+        String subclassName = element.getSubclassName();
         
         Class<? extends FbxObject> javaFbxClass = getImplementingClass(elementName, subclassName);
         
