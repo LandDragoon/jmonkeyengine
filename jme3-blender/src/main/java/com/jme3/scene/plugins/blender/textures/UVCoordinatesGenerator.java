@@ -119,7 +119,7 @@ public class UVCoordinatesGenerator {
         } else {
         	LOGGER.warning("Texture coordinates type not currently supported: " + texco);
         }
-        
+
         if (inputData != null) {// make projection calculations
             result = projectionCalculations(inputData, projection, bb, geometries);
         }
@@ -216,7 +216,7 @@ public class UVCoordinatesGenerator {
     }
     
     /**
-     * TODO
+     * Makes coordinate calculations
      * 
      * @param inputData
      * @param bb
