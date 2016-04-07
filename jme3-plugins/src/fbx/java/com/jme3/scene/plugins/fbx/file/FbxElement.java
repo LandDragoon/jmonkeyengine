@@ -39,11 +39,10 @@ import java.util.logging.Logger;
 
 import com.jme3.scene.plugins.fbx.misc.FbxClassTypeDispatcher;
 import com.jme3.scene.plugins.fbx.obj.FbxObject;
-import com.jme3.scene.plugins.fbx.obj.FbxObjectFactory;
 import com.jme3.scene.plugins.fbx.obj.FbxUnknownObject;
 
 public class FbxElement {
-    private static final Logger logger = Logger.getLogger(FbxObjectFactory.class.getName()); 
+    private static final Logger logger = Logger.getLogger(FbxElement.class.getName()); 
 
 	public String id;
 	public List<Object> properties;

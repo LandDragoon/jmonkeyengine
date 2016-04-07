@@ -50,7 +50,7 @@ import com.jme3.scene.plugins.fbx.obj.FbxUnknownObject;
  * Uses a configuration file in src/fbx/resources for constructing the dispatch table
  */
 public class FbxClassTypeDispatcher {
-    private static final Logger logger = Logger.getLogger(FbxGlobalSettings.class.getName());
+    private static final Logger logger = Logger.getLogger(FbxClassTypeDispatcher.class.getName());
 
     private static FbxClassTypeDispatcher instance = null;
     private final Path configFilePath = Paths.get(System.getProperty("user.dir"), 
