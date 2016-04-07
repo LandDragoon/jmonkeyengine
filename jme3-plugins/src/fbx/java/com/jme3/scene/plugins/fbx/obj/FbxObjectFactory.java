@@ -55,7 +55,7 @@ public final class FbxObjectFactory {
         String elementName = element.id;
         String subclassName = element.getSubclassName();
         
-        Class<? extends FbxObject> javaFbxClass = element.resolveFbxClass();//getImplementingClass(elementName, subclassName);
+        Class<? extends FbxObject> javaFbxClass = element.resolveFbxClass();
         
         if (javaFbxClass != null) {
             try {
