@@ -58,6 +58,9 @@ public class FbxClassTypeDispatcher {
     
     private Map<String, Map<String, String>> dispatchTable;
     
+    /**
+     * @return an existing instance (or a new one if no instance exists)
+     */
     public static FbxClassTypeDispatcher getInstance() {
         if(instance == null) {
             instance = new FbxClassTypeDispatcher();
@@ -65,6 +68,10 @@ public class FbxClassTypeDispatcher {
         return instance;
     }
     
+    /**
+     * Private constructor. Reads the configuration file as is set in configFilePath and
+     * converts it to a Map structure.
+     */
     private FbxClassTypeDispatcher() {
         String typesJson = null;
         try {
@@ -77,6 +84,13 @@ public class FbxClassTypeDispatcher {
         dispatchTable = new Gson().fromJson(typesJson, type);
     }
     
+    /**
+     * this reasons which type belongs to the given Strings.
+     * @param elementName name of the top-level element
+     * @param subclassName name of the sub-level element
+     * @return the class corresponding to the types as is in the dispatchTable. 
+     *      If no type can be cound, it returns FbxUnknownObject.class
+     */
     public Class<? extends FbxObject> dispatchType(String elementName, String subclassName) {
         Map<String, String> mainType = dispatchTable.get(elementName);
         Class<? extends FbxObject> res = FbxUnknownObject.class;
