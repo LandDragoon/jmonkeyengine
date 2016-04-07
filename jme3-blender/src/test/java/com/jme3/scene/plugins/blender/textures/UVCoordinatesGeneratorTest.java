@@ -33,9 +33,7 @@ package com.jme3.scene.plugins.blender.textures;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.Mock;
 
 import com.jme3.bounding.BoundingBox;
 import com.jme3.math.Vector2f;
@@ -50,134 +48,206 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 
 import java.nio.Buffer;
+
+import static org.mockito.Mockito.*;
+
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-@PrepareForTest({Mesh.class, BoundingBox.class, Geometry.class})
 public class UVCoordinatesGeneratorTest {
+    
+	@Mock
+    private Mesh mockedMesh; 
+	@Mock
+    private Geometry mockedGeometry;
 	
-	private Mesh mockedMesh; 
-	private UVCoordinatesType texco;
-	private UVProjectionType projection;
-	private Geometry mockedGeometry;
-	private BoundingBox mockedBox;
-	
-	private int[] indices;
-	
-	@Before
-	public void setup() {
-		mockedMesh = Mockito.mock(Mesh.class);
-		projection = UVProjectionType.PROJECTION_CUBE;
-		mockedBox = Mockito.mock(BoundingBox.class);	
-		
-		mockedGeometry = Mockito.mock(Geometry.class);
-		Mockito.doNothing().when(mockedGeometry).updateModelBound();
-		Mockito.when(mockedGeometry.getModelBound()).thenReturn(mockedBox);	
-		
-		indices = new int[0];
-	}
-	
-	@Test
-	public void testUnsupportedTextureType2D() {	
-		List<Vector2f> result = null;
-		texco = UVCoordinatesType.TEXCO_LAVECTOR;		
-			
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testORCOTextureType2D() {
-		List<Vector2f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO;                                                                                                                                  
-		
-		FloatBuffer buffer = FloatBuffer.allocate(9);
-		float[] floatsForBuffer = {1f,2f,3f,4f,5f,6f,7f,8f,9f};
-		buffer.put(floatsForBuffer);
-		Mockito.when(mockedMesh.getFloatBuffer(any(VertexBuffer.Type.class))).thenReturn(buffer);
-		
-		Mockito.when(mockedBox.getMin(null)).thenReturn(new Vector3f(1, 0, 0));
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
-		
-		ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
-		expected.add(new Vector2f(Float.NaN, Float.POSITIVE_INFINITY));
-		expected.add(new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY));
-		expected.add(new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY));
-		
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testUVTextureType2D() {
-		List<Vector2f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_UV;
-	
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testNORMTextureType2D() {
-		List<Vector2f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_NORM;
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testUnsupportedTextureType3D() {
-		List<Vector3f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_SPEED;
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testNORMTextureType3D() {
-		List<Vector3f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_NORM;
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testUVTextureType3D() {
-		List<Vector3f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_UV;
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
-		assertEquals(new ArrayList<Vector2f>(), result);
-	}
-	
-	@Test
-	public void testORCOTextureType3D() {
-		List<Vector3f> result = null;
-		UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO;    
-		indices = new int[3];
-		indices[0] = 1;
-		indices[1] = 2;
-		indices[2] = 0;
-		
-		FloatBuffer buffer = FloatBuffer.allocate(9);
-		float[] floatsForBuffer = {1f,2f,3f,4f,5f,6f,7f,8f,9f};
-		buffer.put(floatsForBuffer);
-		Mockito.when(mockedMesh.getFloatBuffer(any(VertexBuffer.Type.class))).thenReturn(buffer);
-		
-		Mockito.when(mockedBox.getMin(null)).thenReturn(new Vector3f(1, 0, 0));
-		
-		result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
-		
-		ArrayList<Vector3f> expected = new ArrayList<Vector3f>();
-		expected.add(new Vector3f(0f, 2f, 0f));
-		expected.add(new Vector3f(3f, 5f, 0f));
-		expected.add(new Vector3f(6f, 8f, 0f));
-		
-		assertEquals(expected, result);
-	}
-	
+    private BoundingBox bb;
+    private UVCoordinatesType texco;
+    private UVProjectionType projection;
+    private int[] indices;
+    
+    @Before
+    public void setup() {
+        mockedMesh = mock(Mesh.class);
+        projection = UVProjectionType.PROJECTION_CUBE;
+        bb = new BoundingBox(new Vector3f(1f, 2f ,3f), 1f, 2f, 3f);
+            
+        mockedGeometry = mock(Geometry.class);
+        doNothing().when(mockedGeometry).updateModelBound();
+        when(mockedGeometry.getModelBound()).thenReturn(bb); 
+        
+        indices = new int[0];
+    }
+    
+    @Test
+    public void testUnsupportedTextureType2D() {    
+        List<Vector2f> result = null;
+        texco = UVCoordinatesType.TEXCO_LAVECTOR;       
+            
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        assertEquals(new ArrayList<Vector2f>(), result);
+    }
+    
+    @Test
+    public void testORCOTextureType2D() {
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO;                                                                                                                                  
+        
+        initFloatBuffer();
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        
+        ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
+        expected.add(new Vector2f(0.5f, 0.5f));
+        expected.add(new Vector2f(2.0f, 1.25f));
+        expected.add(new Vector2f(3.5f, 2.0f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testORCOTextureTypeFlatProjectionType2D() {
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO; 
+        projection = UVProjectionType.PROJECTION_FLAT;
+        
+        initFloatBuffer();     
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        
+        ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
+        expected.add(new Vector2f(0.5f, 0.5f));
+        expected.add(new Vector2f(2.0f, 1.0f));
+        expected.add(new Vector2f(3.5f, 1.5f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testORCOTextureTypeTubeProjectionType2D() {  	
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO; 
+        projection = UVProjectionType.PROJECTION_TUBE;    
+        initFloatBuffer();     
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        
+        ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
+        expected.add(new Vector2f(0.25f, 0.5f));
+        expected.add(new Vector2f(0.375f, 1.0f));
+        expected.add(new Vector2f(0.375f, 1.5f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testORCOTextureTypeSphereProjectionType2D() {
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO; 
+        projection = UVProjectionType.PROJECTION_SPHERE;
+        
+        initFloatBuffer();     
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        
+        ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
+        expected.add(new Vector2f(0.25f, 0.5f));
+        expected.add(new Vector2f(0.375f, 0.69591326f));
+        expected.add(new Vector2f(0.375f, 0.69591326f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testUVTextureType2D() {
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_UV;
+        
+        when(mockedMesh.getVertexCount()).thenReturn(2);
+    
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        ArrayList<Vector2f> expected = new ArrayList<Vector2f>();
+        expected.add(new Vector2f(0f, 1f));
+        expected.add(new Vector2f(0f, 0f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testNORMTextureType2D() {
+        List<Vector2f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_NORM;
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor2DTexture(mockedMesh, texco, projection, mockedGeometry);
+        assertEquals(new ArrayList<Vector2f>(), result);
+    }
+    
+    @Test
+    public void testUnsupportedTextureType3D() {
+        List<Vector3f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_SPEED;
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
+        assertEquals(new ArrayList<Vector2f>(), result);
+    }
+    
+    @Test
+    public void testORCOTextureType3D() {
+        List<Vector3f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_ORCO;    
+        indices = new int[3];
+        indices[0] = 1;
+        indices[1] = 2;
+        indices[2] = 0;
+        
+        FloatBuffer buffer = FloatBuffer.allocate(9);
+        float[] floatsForBuffer = {1f,2f,3f,4f,5f,6f,7f,8f,9f};
+        buffer.put(floatsForBuffer);
+        when(mockedMesh.getFloatBuffer(any(VertexBuffer.Type.class))).thenReturn(buffer);
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
+        
+        ArrayList<Vector3f> expected = new ArrayList<Vector3f>();
+        expected.add(new Vector3f(0.5f, 0.5f, 0f));
+        expected.add(new Vector3f(2.0f, 1.25f, 0f));
+        expected.add(new Vector3f(3.5f, 2.0f, 0f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testUVTextureType3D() {
+        List<Vector3f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_UV;
+        
+        when(mockedMesh.getVertexCount()).thenReturn(2);
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
+        
+        ArrayList<Vector3f> expected = new ArrayList<Vector3f>();
+        expected.add(new Vector3f(0f, 1f, 0f));
+        expected.add(new Vector3f(0f, 0f, 0f));
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testNORMTextureType3D() {
+        List<Vector3f> result = null;
+        UVCoordinatesType texco = UVCoordinatesType.TEXCO_NORM;
+        
+        result = UVCoordinatesGenerator.generateUVCoordinatesFor3DTexture(mockedMesh, texco, indices, mockedGeometry);
+        assertEquals(new ArrayList<Vector2f>(), result);
+    }
+    
+    /**
+     * Helper function to create and prepare a FloatBuffer for the tests
+     */
+    public void initFloatBuffer() {
+    	FloatBuffer buffer = FloatBuffer.allocate(9);
+        float[] floatsForBuffer = {1f,2f,3f,4f,5f,6f,7f,8f,9f};
+        buffer.put(floatsForBuffer);
+        when(mockedMesh.getFloatBuffer(any(VertexBuffer.Type.class))).thenReturn(buffer);
+    }
 }
