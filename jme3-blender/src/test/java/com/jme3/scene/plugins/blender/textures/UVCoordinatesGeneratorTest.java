@@ -31,10 +31,6 @@
  */
 package com.jme3.scene.plugins.blender.textures;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.jme3.bounding.BoundingBox;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -44,13 +40,17 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.plugins.blender.textures.UVCoordinatesGenerator.UVCoordinatesType;
 import com.jme3.scene.plugins.blender.textures.UVProjectionGenerator.UVProjectionType;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 public class UVCoordinatesGeneratorTest {
     
