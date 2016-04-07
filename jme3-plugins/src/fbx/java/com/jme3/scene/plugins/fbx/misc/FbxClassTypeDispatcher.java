@@ -85,10 +85,10 @@ public class FbxClassTypeDispatcher {
     }
     
     /**
-     * this reasons which type belongs to the given Strings.
+     * this method determines which type belongs to the given Strings.
      * @param elementName name of the top-level element
      * @param subclassName name of the sub-level element
-     * @return the class corresponding to the types as is in the dispatchTable. 
+     * @return the class corresponding to the given arguments as found in the dispatchTable. 
      *      If no type can be cound, it returns FbxUnknownObject.class
      */
     public Class<? extends FbxObject> dispatchType(String elementName, String subclassName) {
