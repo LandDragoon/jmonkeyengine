@@ -17,6 +17,12 @@ sourceSets {
     }
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+}
+
 dependencies {
     compile project(':jme3-core')
 }
