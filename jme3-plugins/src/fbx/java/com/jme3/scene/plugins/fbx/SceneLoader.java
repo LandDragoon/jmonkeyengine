@@ -76,6 +76,8 @@ import com.jme3.scene.plugins.fbx.AnimationList.AnimInverval;
 import com.jme3.scene.plugins.fbx.file.FbxElement;
 import com.jme3.scene.plugins.fbx.file.FbxFile;
 import com.jme3.scene.plugins.fbx.file.FbxReader;
+import com.jme3.scene.plugins.fbx.loaders.FbxMaterialLoader;
+import com.jme3.scene.plugins.fbx.loaders.FbxMaterialLoader.MaterialData;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
@@ -104,7 +106,6 @@ public class SceneLoader implements AssetLoader {
 	
 	// Loaded objects data
 	private Map<Long, MeshData> meshDataMap = new HashMap<Long, MeshData>();
-	private Map<Long, MaterialData> matDataMap = new HashMap<Long, MaterialData>();
 	private Map<Long, TextureData> texDataMap = new HashMap<Long, TextureData>();
 	private Map<Long, ImageData> imgDataMap = new HashMap<Long, ImageData>(); // Video clips
 	private Map<Long, ModelData> modelDataMap = new HashMap<Long, ModelData>(); // Mesh nodes and limb nodes
@@ -122,15 +123,18 @@ public class SceneLoader implements AssetLoader {
 	private Map<Long, Limb> limbMap = new HashMap<Long, Limb>(); // Bones
 	private Map<Long, BindPose> bindMap = new HashMap<Long, BindPose>(); // Node bind poses
 	private Map<Long, Geometry> geomMap = new HashMap<Long, Geometry>(); // Mesh geometries
-	private Map<Long, Material> matMap = new HashMap<Long, Material>();
 	private Map<Long, Texture> texMap = new HashMap<Long, Texture>();
 	private Map<Long, Image> imgMap = new HashMap<Long, Image>();
 	private Skeleton skeleton;
 	private AnimControl animControl;
 	
+	//Loaders
+	private FbxMaterialLoader matLoader;
+	
 	@Override
 	public Object load(AssetInfo assetInfo) throws IOException {
 		this.assetManager = assetInfo.getManager();
+		this.initLoaders();
 		AssetKey<?> assetKey = assetInfo.getKey();
 		if(assetKey instanceof SceneKey)
 			animList = ((SceneKey) assetKey).getAnimations();
@@ -155,6 +159,10 @@ public class SceneLoader implements AssetLoader {
 			}
 		}
 		return sceneNode;
+	}
+	
+	private void initLoaders() {
+	   matLoader = new FbxMaterialLoader(assetManager);
 	}
 	
 	private void reset() {
@@ -202,7 +210,7 @@ public class SceneLoader implements AssetLoader {
 			if(e.id.equals("Geometry"))
 				loadGeometry(e);
 			else if(e.id.equals("Material"))
-				loadMaterial(e);
+				matLoader.loadMaterial(e);
 			else if(e.id.equals("Model"))
 				loadModel(e);
 			else if(e.id.equals("Pose"))
@@ -318,53 +326,6 @@ public class SceneLoader implements AssetLoader {
 					}
 			}
 			meshDataMap.put(id, data);
-		}
-	}
-	
-	private void loadMaterial(FbxElement element) {
-		long id = (Long) element.properties.get(0);
-		String path = (String) element.properties.get(1);
-		String type = (String) element.properties.get(2);
-		if(type.equals("")) {
-			MaterialData data = new MaterialData();
-			data.name = path.substring(0, path.indexOf(0));
-			for(FbxElement e : element.children) {
-				if(e.id.equals("ShadingModel")) {
-					data.shadingModel = (String) e.properties.get(0);
-				} else if(e.id.equals("Properties70")) {
-					for(FbxElement e2 : e.children) {
-						if(e2.id.equals("P")) {
-							String propName = (String) e2.properties.get(0);
-							if(propName.equals("AmbientColor")) {
-								double x = (Double) e2.properties.get(4);
-								double y = (Double) e2.properties.get(5);
-								double z = (Double) e2.properties.get(6);
-								data.ambientColor.set((float) x, (float) y, (float) z);
-							} else if(propName.equals("AmbientFactor")) {
-								double x = (Double) e2.properties.get(4);
-								data.ambientFactor = (float) x;
-							} else if(propName.equals("DiffuseColor")) {
-								double x = (Double) e2.properties.get(4);
-								double y = (Double) e2.properties.get(5);
-								double z = (Double) e2.properties.get(6);
-								data.diffuseColor.set((float) x, (float) y, (float) z);
-							} else if(propName.equals("DiffuseFactor")) {
-								double x = (Double) e2.properties.get(4);
-								data.diffuseFactor = (float) x;
-							} else if(propName.equals("SpecularColor")) {
-								double x = (Double) e2.properties.get(4);
-								double y = (Double) e2.properties.get(5);
-								double z = (Double) e2.properties.get(6);
-								data.specularColor.set((float) x, (float) y, (float) z);
-							} else if(propName.equals("Shininess") || propName.equals("ShininessExponent")) {
-								double x = (Double) e2.properties.get(4);
-								data.shininessExponent = (float) x;
-							}
-						}
-					}
-				}
-			}
-			matDataMap.put(id, data);
 		}
 	}
 	
@@ -793,22 +754,6 @@ public class SceneLoader implements AssetLoader {
 		return geom;
 	}
 	
-	private Material createMaterial(MaterialData data) {
-		Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		m.setName(data.name);
-		data.ambientColor.multLocal(data.ambientFactor);
-		data.diffuseColor.multLocal(data.diffuseFactor);
-		data.specularColor.multLocal(data.specularFactor);
-		m.setColor("Ambient", new ColorRGBA(data.ambientColor.x, data.ambientColor.y, data.ambientColor.z, 1));
-		m.setColor("Diffuse", new ColorRGBA(data.diffuseColor.x, data.diffuseColor.y, data.diffuseColor.z, 1));
-		m.setColor("Specular", new ColorRGBA(data.specularColor.x, data.specularColor.y, data.specularColor.z, 1));
-		m.setFloat("Shininess", data.shininessExponent);
-		m.setBoolean("UseMaterialColors", true);
-		m.getAdditionalRenderState().setAlphaTest(true);
-		m.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-		return m;
-	}
-	
 	private Node createNode(ModelData data) {
 		Node model = new Node(data.name);
 		model.setLocalTranslation(data.localTranslation);
@@ -965,6 +910,7 @@ public class SceneLoader implements AssetLoader {
 		// Link model nodes into scene
 		for(long modelId : modelMap.keySet()) {
 			List<Long> refs = refMap.get(modelId);
+			System.out.println(modelId + " " + refs);
 			if(refs == null)
 				continue;
 			Node model = modelMap.get(modelId);
@@ -995,13 +941,6 @@ public class SceneLoader implements AssetLoader {
 	}
 	
 	private void linkMaterials() {
-		// Build materials
-		for(long matId : matDataMap.keySet()) {
-			MaterialData data = matDataMap.get(matId);
-			Material material = createMaterial(data);
-			if(material != null)
-				matMap.put(matId, material);
-		}
 		// Build textures
 		for(long texId : texDataMap.keySet()) {
 			TextureData data = texDataMap.get(texId);
@@ -1028,26 +967,8 @@ public class SceneLoader implements AssetLoader {
 					tex.setImage(img);
 			}
 		}
-		// Link textures to material maps
-		for(long texId : texMap.keySet()) {
-			List<PropertyLink> props = propMap.get(texId);
-			if(props == null)
-				continue;
-			Texture tex = texMap.get(texId);
-			for(PropertyLink prop : props) {
-				Material mat = matMap.get(prop.ref);
-				if(mat != null) {
-					if(prop.propName.equals("DiffuseColor")) {
-						mat.setTexture("DiffuseMap", tex);
-						mat.setColor("Diffuse", ColorRGBA.White);
-					} else if(prop.propName.equals("SpecularColor")) {
-						mat.setTexture("SpecularMap", tex);
-						mat.setColor("Specular", ColorRGBA.White);
-					} else if(prop.propName.equals("NormalMap"))
-						mat.setTexture("NormalMap", tex);
-				}
-			}
-		}
+		
+		matLoader.linkMaterials(texMap, propMap);
 	}
 	
 	private void linkMeshes(Node sceneNode) {
@@ -1074,6 +995,8 @@ public class SceneLoader implements AssetLoader {
 				}
 			}
 		}
+		
+		Map<Long, Material> matMap = matLoader.getMaterialMap();
 		// Link materials to meshes
 		for(long matId : matMap.keySet()) {
 			List<Long> refs = refMap.get(matId);
@@ -1082,9 +1005,13 @@ public class SceneLoader implements AssetLoader {
 			Material mat = matMap.get(matId);
 			for(long refId : refs) {
 				Node rootNode = modelMap.get(refId);
+				System.out.println(matId + " " + refId);
+				System.out.println(rootNode);
 				if(rootNode != null) {
-					for(Spatial child : rootNode.getChildren())
-						child.setMaterial(mat);
+					for(Spatial child : rootNode.getChildren()) {
+					    System.out.println("Child " + child);
+					    child.setMaterial(mat);
+					}
 				}
 			}
 		}
@@ -1426,7 +1353,6 @@ public class SceneLoader implements AssetLoader {
 	
 	private void releaseObjects() {
 		meshDataMap.clear();
-		matDataMap.clear();
 		texDataMap.clear();
 		imgDataMap.clear();
 		modelDataMap.clear();
@@ -1442,9 +1368,9 @@ public class SceneLoader implements AssetLoader {
 		limbMap.clear();
 		bindMap.clear();
 		geomMap.clear();
-		matMap.clear();
 		texMap.clear();
 		imgMap.clear();
+		matLoader.releaseMaterials();
 		skeleton = null;
 		animControl = null;
 		animList = null;
@@ -1506,18 +1432,6 @@ public class SceneLoader implements AssetLoader {
 		Map<Long, Transform> nodeTransforms = new HashMap<Long, Transform>();
 	}
 	
-	private class MaterialData {
-		String name;
-		String shadingModel = "phong";
-		Vector3f ambientColor = new Vector3f(0.2f, 0.2f, 0.2f);
-		float ambientFactor = 1.0f;
-		Vector3f diffuseColor = new Vector3f(0.8f, 0.8f, 0.8f);
-		float diffuseFactor = 1.0f;
-		Vector3f specularColor = new Vector3f(0.2f, 0.2f, 0.2f);
-		float specularFactor = 1.0f;
-		float shininessExponent = 20.0f;
-	}
-	
 	private class TextureData {
 		String name;
 		String bindType;
@@ -1571,7 +1485,7 @@ public class SceneLoader implements AssetLoader {
 		long layerId;
 	}
 	
-	private class PropertyLink {
+	public class PropertyLink {
 		long ref;
 		String propName;
 		
@@ -1579,6 +1493,14 @@ public class SceneLoader implements AssetLoader {
 			this.ref = id;
 			this.propName = prop;
 		}
+		
+		public long getRef() {
+		    return ref;
+		}
+		
+		public String getPropName() {
+            return propName;
+        }
 	}
 	
 }

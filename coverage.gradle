@@ -1,0 +1,73 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'
+  dependencies {
+    jacocoAgent files("$projectDir/libs/org.jacoco:org.jacoco.agent:0.7.1.201405082137")
+    jacocoAnt files("$projectDir/libs/org.jacoco:org.jacoco.ant:0.7.1.201405082137",
+                    "$projectDir/libs/org.jacoco:org.jacoco.core:0.7.1.201405082137",
+                    "$projectDir/libs/org.jacoco:org.jacoco.report:0.7.1.201405082137")
+}
+
+// Coverage (Cobertura) ////////////////////////////////////////////////////////
+// Run as: gradle testGlobal coberturaReport performCoverageCheck
+
+/*buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        //cobertura files("$projectDir/libs/cobertura-1.9.4.1.jar")
+        classpath 'net.saliman:gradle-cobertura-plugin:2.2.2'
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1'
+    }
+}
+
+// Reference by FQCN instead of name: http://forums.gradle.org/gradle/topics/plugin_not_found_when_i_using_a_gradle_from_other_gradle_file
+apply plugin: net.saliman.gradle.plugin.cobertura.CoberturaPlugin
+apply plugin: org.kt3k.gradle.plugin.CoverallsPlugin
+
+subprojects {
+    apply plugin: net.saliman.gradle.plugin.cobertura.CoberturaPlugin
+}
+
+cobertura {
+    coverageFormats = ['html', 'xml']
+    coverageReportDatafile = file("build/cobertura/cobertura.ser")
+    coverageReportDir = file("build/reports/coverage")
+
+    coverageDirs = []
+    coverageSourceDirs = []
+    coverageMergeDatafiles = []
+
+    rootProject.subprojects.each {
+        coverageFormats = ['html', 'xml']
+        coverageDirs << file("${it.buildDir}/classes/main")
+        coverageSourceDirs << file("${it.projectDir}/src/main/java")
+        coverageMergeDatafiles << file("${it.buildDir}/cobertura/cobertura.ser")
+    }
+}
+
+coveralls {
+    coberturaReportPath = "${buildDir}/reports/coverage/coverage.xml"
+}*/
+
+/*buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        //coberturaAnt files("$projectDir/libs/cobertura-1.9.4.1.jar")
+        classpath 'net.sourceforge.cobertura:cobertura:1.9.4.1'
+        coberturaAnt 'net.sourceforge.cobertura:cobertura:1.9.4.1'
+        classpath 'com.eriwen:gradle-cobertura-plugin:1.1.1'
+    }
+}
+
+apply plugin: org.gradle.api.plugins.cobertura.CoberturaPlugin
+
+cobertura {
+    format = 'xml'
+}*/
