@@ -10,11 +10,6 @@ sourceSets {
             srcDir 'src/xml/java'
         }
     }
-    test {
-        java {
-            srcDir 'src/test/java'
-        }
-    }
 }
 
 dependencies {
