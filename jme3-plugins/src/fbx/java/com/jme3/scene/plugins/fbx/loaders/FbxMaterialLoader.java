@@ -107,7 +107,9 @@ public class FbxMaterialLoader {
         
         // Link given textures to materials
         for(long texId : texMap.keySet()) {
+            System.out.println(texId);
             List<PropertyLink> props = propMap.get(texId);
+            System.out.println(props);
             if(props == null)
                 continue;
             Texture tex = texMap.get(texId);

@@ -57,8 +57,6 @@ import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.ModelKey;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.BlendMode;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Quaternion;
@@ -207,6 +205,7 @@ public class SceneLoader implements AssetLoader {
 	
 	private void loadObjects(FbxElement element) {
 		for(FbxElement e : element.children) {
+		    System.out.println(e);
 			if(e.id.equals("Geometry"))
 				loadGeometry(e);
 			else if(e.id.equals("Material"))
@@ -910,7 +909,6 @@ public class SceneLoader implements AssetLoader {
 		// Link model nodes into scene
 		for(long modelId : modelMap.keySet()) {
 			List<Long> refs = refMap.get(modelId);
-			System.out.println(modelId + " " + refs);
 			if(refs == null)
 				continue;
 			Node model = modelMap.get(modelId);
@@ -1005,11 +1003,8 @@ public class SceneLoader implements AssetLoader {
 			Material mat = matMap.get(matId);
 			for(long refId : refs) {
 				Node rootNode = modelMap.get(refId);
-				System.out.println(matId + " " + refId);
-				System.out.println(rootNode);
 				if(rootNode != null) {
 					for(Spatial child : rootNode.getChildren()) {
-					    System.out.println("Child " + child);
 					    child.setMaterial(mat);
 					}
 				}

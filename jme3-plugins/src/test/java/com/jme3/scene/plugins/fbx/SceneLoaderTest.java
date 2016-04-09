@@ -15,14 +15,14 @@ import com.jme3.asset.ModelKey;
 import com.jme3.material.MatParam;
 import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
-import com.jme3.math.Vector4f;
+import com.jme3.material.RenderState;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.fbx.file.FbxElement;
 import com.jme3.scene.plugins.fbx.file.FbxFile;
 import com.jme3.scene.plugins.fbx.file.FbxReader;
-
-import javassist.expr.MethodCall;
+import com.jme3.scene.plugins.fbx.loaders.FbxMaterialLoader;
+import com.jme3.texture.Texture;
 
 import static org.junit.Assert.*;
 
@@ -31,7 +31,7 @@ import java.io.InputStream;
 
 import org.junit.Before;
 
-@PrepareForTest({FbxReader.class, Node.class, SceneLoader.class})
+@PrepareForTest({FbxReader.class, Node.class, SceneLoader.class, Material.class, FbxMaterialLoader.class})
 @RunWith(PowerMockRunner.class)
 public class SceneLoaderTest {
     @Mock
@@ -62,7 +62,7 @@ public class SceneLoaderTest {
     }
     
     @Test
-    public void testSceneLoaderWithModelKeyMock() throws Exception {
+    public void testSceneLoaderMaterialGetsAttachedToMeshMock() throws Exception {
         AssetManager assetMgrMock = Mockito.mock(AssetManager.class);
         InputStream inputMock = Mockito.mock(InputStream.class);
         MaterialDef materialDefMock = Mockito.mock(MaterialDef.class);
@@ -79,55 +79,29 @@ public class SceneLoaderTest {
         String rootMeshNodeName = "mesh";
         rootMeshNode.setName(rootMeshNodeName);
         Node rootMeshNodeSpied = Mockito.spy(rootMeshNode);
-        
-        
-        FbxFile fbxFileMock = new FbxFile();
-        FbxElement fbxElementMock = new FbxElement(2);
-        
-        fbxElementMock.id = "Objects";
-        
-        FbxElement fbxMaterialMock = new FbxElement(2);
-        fbxMaterialMock.id = "Material";
-        fbxMaterialMock.properties.add(100L);
-        fbxMaterialMock.properties.add("abc\0def");
-        fbxMaterialMock.properties.add("");
-        
-        FbxElement fbxMeshMock = new FbxElement(2); 
-        fbxMeshMock.id = "Model";
-        fbxMeshMock.properties.add(200L);
-        fbxMeshMock.properties.add("mesh\0ghi");
-        fbxMeshMock.properties.add("P");
-        
-        FbxElement fbxMeshChildMock = new FbxElement(2); 
-        fbxMeshChildMock.id = "Model";
-        fbxMeshChildMock.properties.add(300L);
-        fbxMeshChildMock.properties.add("meshChildGetsMaterial\0ghi");
-        fbxMeshChildMock.properties.add("P");
-        
+                
+        FbxElement fbxMaterialMock = createElement(3, "Material", new Object[] {100L,  "abc\0def", ""});
+        FbxElement fbxMeshMock = createElement(3, "Model", new Object[] {200L, "mesh\0ghi", "P"}); 
+        FbxElement fbxMeshChildMock = createElement(3, "Model", new Object[] {300L, "meshChildGetsMaterial\0ghi", "P"}); 
+        FbxElement fbxMaterialLinkMock = createElement(3, "C", new Object[] {"OO", 100L, 200L});
+        FbxElement fbxRootNodeLinkMock = createElement(3, "C", new Object[] {"OO", 200L, 0L});
+        FbxElement fbxMeshNodeLinkMock = createElement(3, "C", new Object[] {"OO", 300L, 200L});
         
         FbxElement fbxConnectionMock = new FbxElement(2);
         fbxConnectionMock.id = "Connections";
-        
-        FbxElement fbxConcreteLinkMock = new FbxElement(3);
-        fbxConcreteLinkMock.id = "C";
-        fbxConcreteLinkMock.properties.add("OO");
-        fbxConcreteLinkMock.properties.add(100L);   //material id
-        fbxConcreteLinkMock.properties.add(200L);   //mesh id
-        FbxElement fbxRootNodeLinkMock = new FbxElement(3);
-        fbxRootNodeLinkMock.id = "C";
-        fbxRootNodeLinkMock.properties.add("OO");
-        fbxRootNodeLinkMock.properties.add(200L);   //mesh id
-        fbxRootNodeLinkMock.properties.add(0L);   //rootNode id (default)
-        
-        FbxElement fbxMeshNodeLinkMock = new FbxElement(3);
-        fbxMeshNodeLinkMock.id = "C";
-        fbxMeshNodeLinkMock.properties.add("OO");
-        fbxMeshNodeLinkMock.properties.add(300L);   //mesh child id
-        fbxMeshNodeLinkMock.properties.add(200L);   //mesh id (default)
-        
-        fbxConnectionMock.children.add(fbxConcreteLinkMock);
+        fbxConnectionMock.children.add(fbxMaterialLinkMock);
         fbxConnectionMock.children.add(fbxRootNodeLinkMock);
         fbxConnectionMock.children.add(fbxMeshNodeLinkMock);
+        
+        FbxElement fbxElementMock = new FbxElement(2);
+        fbxElementMock.id = "Objects";
+        fbxElementMock.children.add(fbxMaterialMock);
+        fbxElementMock.children.add(fbxMeshMock);
+        fbxElementMock.children.add(fbxMeshChildMock);
+        
+        FbxFile fbxFileMock = new FbxFile();
+        fbxFileMock.rootElements.add(fbxConnectionMock);
+        fbxFileMock.rootElements.add(fbxElementMock);
         
         Mockito.when(assetInfo.getManager()).thenReturn(assetMgrMock);     
         Mockito.when(assetInfo.openStream()).thenReturn(inputMock);
@@ -138,14 +112,7 @@ public class SceneLoaderTest {
         Mockito.when(mk.getName()).thenReturn("Fromage");
         Mockito.when(mk.getExtension()).thenReturn("chee");
         
-        Mockito.when(materialDefMock.getMaterialParam(Mockito.anyString())).thenReturn(matParamMock);
-
-        fbxFileMock.rootElements.add(fbxConnectionMock);
-        fbxFileMock.rootElements.add(fbxElementMock);
-        fbxElementMock.children.add(fbxMaterialMock);
-        fbxElementMock.children.add(fbxMeshMock);
-        fbxElementMock.children.add(fbxMeshChildMock);
-           
+        Mockito.when(materialDefMock.getMaterialParam(Mockito.anyString())).thenReturn(matParamMock);   
         PowerMockito.mockStatic(FbxReader.class);       
         PowerMockito.when(FbxReader.readFBX(Mockito.any(InputStream.class))).thenReturn(fbxFileMock);
         
@@ -163,5 +130,152 @@ public class SceneLoaderTest {
         
         Mockito.verify(meshNodeSpied, Mockito.times(1)).setMaterial(Mockito.any(Material.class));
         Mockito.verify(rootMeshNodeSpied, Mockito.never()).setMaterial(Mockito.any(Material.class));
+    }
+    
+    @Test
+    public void testSceneLoaderNoMaterialNoAttachmentToMesgMock() throws Exception {
+        AssetManager assetMgrMock = Mockito.mock(AssetManager.class);
+        InputStream inputMock = Mockito.mock(InputStream.class);
+        
+        Node n = new Node();
+        String childNodeName = "meshChildNoMaterial";
+        n.setName(childNodeName);
+        Node meshNodeSpied = Mockito.spy(n);
+        Node sceneNode = new Node();
+        String sceneNodeName = "Fr-scene";
+        sceneNode.setName(sceneNodeName);
+        Node rootMeshNode = new Node();
+        String rootMeshNodeName = "mesh";
+        rootMeshNode.setName(rootMeshNodeName);
+        Node rootMeshNodeSpied = Mockito.spy(rootMeshNode);
+        
+        FbxElement fbxMeshMock = createElement(3, "Model", new Object[] {200L, "mesh\0ghi", "P"}); 
+        FbxElement fbxMeshChildMock = createElement(3, "Model", new Object[] {300L, "meshChildNoMaterial\0ghi", "P"}); 
+        FbxElement fbxRootNodeLinkMock = createElement(3, "C", new Object[] {"OO", 200L, 0L});
+        FbxElement fbxMeshNodeLinkMock = createElement(3, "C", new Object[] {"OO", 300L, 200L});
+        
+        FbxElement fbxConnectionMock = new FbxElement(2);
+        fbxConnectionMock.id = "Connections";
+        fbxConnectionMock.children.add(fbxRootNodeLinkMock);
+        fbxConnectionMock.children.add(fbxMeshNodeLinkMock);
+        
+        FbxElement fbxElementMock = new FbxElement(2);
+        fbxElementMock.id = "Objects";
+        fbxElementMock.children.add(fbxMeshMock);
+        fbxElementMock.children.add(fbxMeshChildMock);
+        
+        FbxFile fbxFileMock = new FbxFile();
+        fbxFileMock.rootElements.add(fbxConnectionMock);
+        fbxFileMock.rootElements.add(fbxElementMock);
+        
+        Mockito.when(assetInfo.getManager()).thenReturn(assetMgrMock);     
+        Mockito.when(assetInfo.openStream()).thenReturn(inputMock);
+        Mockito.when(assetInfo.getKey()).thenReturn(mk);       
+        Mockito.when(mk.getName()).thenReturn("Fromage");
+        Mockito.when(mk.getExtension()).thenReturn("chee"); 
+        PowerMockito.mockStatic(FbxReader.class);       
+        PowerMockito.when(FbxReader.readFBX(Mockito.any(InputStream.class))).thenReturn(fbxFileMock);
+        //when meshChildGetsMaterial gets instantiated, put the spied object there instead:
+        // same holds for rootMeshNode
+        PowerMockito.whenNew(Node.class).withArguments(childNodeName).thenReturn(meshNodeSpied);
+        PowerMockito.whenNew(Node.class).withArguments(rootMeshNodeName).thenReturn(rootMeshNodeSpied);
+        PowerMockito.whenNew(Node.class).withArguments(sceneNodeName).thenReturn(sceneNode);
+        
+        Node scene = (Node) sc.load(assetInfo);
+        Spatial mesh = scene.getChild(rootMeshNodeName);
+        Spatial meshWithMaterial = ((Node) mesh).getChild(childNodeName);
+        assertNotEquals(null, scene.getChild(rootMeshNodeName));
+        assertNotEquals(null, meshWithMaterial);
+        
+        Mockito.verify(meshNodeSpied, Mockito.never()).setMaterial(Mockito.any(Material.class));
+        Mockito.verify(rootMeshNodeSpied, Mockito.never()).setMaterial(Mockito.any(Material.class));
+    }
+    
+    @Test
+    public void testTextureGetsLinkedToMaterial() throws Exception {
+        AssetManager assetMgrMock = Mockito.mock(AssetManager.class);
+        InputStream inputMock = Mockito.mock(InputStream.class);
+        Material matMock = Mockito.mock(Material.class);
+        MaterialDef materialDefMock = Mockito.mock(MaterialDef.class);
+        MatParam  matParamMock = Mockito.mock(MatParam.class);
+        
+        Node n = new Node();
+        String childNodeName = "meshChildGetsMaterial";
+        n.setName(childNodeName);
+        Node meshNodeSpied = Mockito.spy(n);
+        Node sceneNode = new Node();
+        String sceneNodeName = "Fr-scene";
+        sceneNode.setName(sceneNodeName);
+        Node rootMeshNode = new Node();
+        String rootMeshNodeName = "mesh";
+        rootMeshNode.setName(rootMeshNodeName);
+        Node rootMeshNodeSpied = Mockito.spy(rootMeshNode);
+        
+        String texModifier = "DiffuseColor";
+        
+        FbxElement fbxTextureMock = createElement(3, "Texture", new Object[] {500L, "mytex\0abc", ""});
+        FbxElement fbxMaterialMock = createElement(3, "Material", new Object[] {100L,  "abc\0def", ""});
+        FbxElement fbxMeshMock = createElement(3, "Model", new Object[] {200L, "mesh\0ghi", "P"}); 
+        FbxElement fbxMeshChildMock = createElement(3, "Model", new Object[] {300L, "meshChildGetsMaterial\0ghi", "P"}); 
+        FbxElement fbxTextureMaterialLinkMock = createElement(4, "C", new Object[] {"OP", 500L, 100L, texModifier });
+        FbxElement fbxMaterialLinkMock = createElement(3, "C", new Object[] {"OO", 100L, 200L});
+        FbxElement fbxRootNodeLinkMock = createElement(3, "C", new Object[] {"OO", 200L, 0L});
+        FbxElement fbxMeshNodeLinkMock = createElement(3, "C", new Object[] {"OO", 300L, 200L});
+        
+        FbxElement fbxConnectionMock = new FbxElement(2);
+        fbxConnectionMock.id = "Connections";
+        fbxConnectionMock.children.add(fbxMaterialLinkMock);
+        fbxConnectionMock.children.add(fbxRootNodeLinkMock);
+        fbxConnectionMock.children.add(fbxMeshNodeLinkMock);
+        fbxConnectionMock.children.add(fbxTextureMaterialLinkMock);
+        
+        FbxElement fbxElementMock = new FbxElement(2);
+        fbxElementMock.id = "Objects";
+        fbxElementMock.children.add(fbxTextureMock);
+        fbxElementMock.children.add(fbxMaterialMock);
+        fbxElementMock.children.add(fbxMeshMock);
+        fbxElementMock.children.add(fbxMeshChildMock);
+        
+        FbxFile fbxFileMock = new FbxFile();
+        fbxFileMock.rootElements.add(fbxConnectionMock);
+        fbxFileMock.rootElements.add(fbxElementMock);
+        
+        Mockito.when(assetInfo.getManager()).thenReturn(assetMgrMock);     
+        Mockito.when(assetInfo.openStream()).thenReturn(inputMock);
+        Mockito.when(assetInfo.getKey()).thenReturn(mk);
+
+        Mockito.when(mk.getName()).thenReturn("Fromage");
+        Mockito.when(mk.getExtension()).thenReturn("chee");
+        
+        Mockito.when(assetMgrMock.loadAsset(Mockito.any(AssetKey.class))).thenReturn(materialDefMock);
+        Mockito.when(materialDefMock.getMaterialParam(Mockito.anyString())).thenReturn(matParamMock);   
+        Mockito.when(matMock.getAdditionalRenderState()).thenReturn(Mockito.mock(RenderState.class));
+        
+        PowerMockito.mockStatic(FbxReader.class);       
+        PowerMockito.when(FbxReader.readFBX(Mockito.any(InputStream.class))).thenReturn(fbxFileMock);        
+        //when meshChildGetsMaterial gets instantiated, put the spied object there instead:
+        // same holds for rootMeshNode
+        PowerMockito.whenNew(Node.class).withArguments(childNodeName).thenReturn(meshNodeSpied);
+        PowerMockito.whenNew(Node.class).withArguments(rootMeshNodeName).thenReturn(rootMeshNodeSpied);
+        PowerMockito.whenNew(Node.class).withArguments(sceneNodeName).thenReturn(sceneNode);
+        PowerMockito.whenNew(Material.class).withAnyArguments().thenReturn(matMock);
+        
+        Node scene = (Node) sc.load(assetInfo);
+        Spatial mesh = scene.getChild("mesh");
+        Spatial meshWithMaterial = ((Node) mesh).getChild("meshChildGetsMaterial");
+        assertNotEquals(null, scene.getChild("mesh"));
+        assertNotEquals(null, meshWithMaterial);
+        
+        Mockito.verify(meshNodeSpied, Mockito.times(1)).setMaterial(Mockito.any(Material.class));
+        Mockito.verify(rootMeshNodeSpied, Mockito.never()).setMaterial(Mockito.any(Material.class));
+        Mockito.verify(matMock, Mockito.times(1)).setTexture(Mockito.anyString(), Mockito.any(Texture.class));; 
+    }
+    
+    private FbxElement createElement(int length, String id, Object[] props) {
+        FbxElement el = new FbxElement(length);
+        el.id = id;
+        for(int i = 0; i < length; i++)
+            el.properties.add(props[i]);
+        return el;
     }
 }
