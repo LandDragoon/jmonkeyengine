@@ -44,7 +44,7 @@ import com.jme3.scene.plugins.fbx.loaders.PropertyLink;
 import com.jme3.scene.plugins.fbx.file.FbxElement;
 import com.jme3.texture.Texture;
 
-public class FbxMaterialLoader {
+public class FbxMaterialLoader implements FbxElementLoader {
 
     private AssetManager assetManager;
     private Map<Long, MaterialData> matDataMap = new HashMap<Long, MaterialData>();
@@ -54,7 +54,7 @@ public class FbxMaterialLoader {
         assetManager = assetMgr;
     }
     
-    public void loadMaterial(FbxElement element) {
+    public void load(FbxElement element) {
         long id = (Long) element.properties.get(0);
         String path = (String) element.properties.get(1);
         String type = (String) element.properties.get(2);
@@ -101,15 +101,18 @@ public class FbxMaterialLoader {
         }
     }
     
+    /**
+     * Links textures to materials using the given propertymap
+     * @param texMap
+     * @param propMap
+     */
     public void linkTexturesToMaterials(Map<Long, Texture> texMap, Map<Long, List<PropertyLink>> propMap) {
         // Build materials        
         createMaterials();
         
         // Link given textures to materials
         for(long texId : texMap.keySet()) {
-            System.out.println(texId);
             List<PropertyLink> props = propMap.get(texId);
-            System.out.println(props);
             if(props == null)
                 continue;
             Texture tex = texMap.get(texId);
@@ -129,6 +132,9 @@ public class FbxMaterialLoader {
         }
     }
     
+    /**
+     * Creates actual material instances of the MaterialData
+     */
     private void createMaterials() {
         for(long matId : matDataMap.keySet()) {
             MaterialData data = matDataMap.get(matId);
@@ -155,11 +161,11 @@ public class FbxMaterialLoader {
         return m;
     }
     
-    public Map<Long, Material> getMaterialMap() {
+    public Map<Long, Material> getObjectMap() {
         return matMap;
     }
     
-    public void releaseMaterials() {
+    public void release() {
         matMap.clear();
         matDataMap.clear();
     }

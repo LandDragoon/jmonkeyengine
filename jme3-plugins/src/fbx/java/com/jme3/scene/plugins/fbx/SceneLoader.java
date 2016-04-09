@@ -205,17 +205,16 @@ public class SceneLoader implements AssetLoader {
     
     private void loadObjects(FbxElement element) {
         for(FbxElement e : element.children) {
-            System.out.println(e);
             if(e.id.equals("Geometry"))
                 loadGeometry(e);
             else if(e.id.equals("Material"))
-                matLoader.loadMaterial(e);
+                matLoader.load(e);
             else if(e.id.equals("Model"))
                 loadModel(e);
             else if(e.id.equals("Pose"))
                 loadPose(e);
             else if(e.id.equals("Texture"))
-                texLoader.loadTexture(e);
+                texLoader.load(e);
             else if(e.id.equals("Video"))
                 loadImage(e);
             else if(e.id.equals("Deformer"))
@@ -924,7 +923,7 @@ public class SceneLoader implements AssetLoader {
                 imgMap.put(imgId, img);
         }
         texLoader.linkImagesToTextures(imgMap, refMap);
-        Map<Long, Texture> texMap = texLoader.getTextureMap();
+        Map<Long, Texture> texMap = texLoader.getObjectMap();
         matLoader.linkTexturesToMaterials(texMap, propMap);
     }
     
@@ -953,7 +952,7 @@ public class SceneLoader implements AssetLoader {
             }
         }
         
-        Map<Long, Material> matMap = matLoader.getMaterialMap();
+        Map<Long, Material> matMap = matLoader.getObjectMap();
         // Link materials to meshes
         for(long matId : matMap.keySet()) {
             List<Long> refs = refMap.get(matId);
@@ -1322,8 +1321,8 @@ public class SceneLoader implements AssetLoader {
         bindMap.clear();
         geomMap.clear();
         imgMap.clear();
-        matLoader.releaseMaterials();
-        texLoader.releaseTextures();
+        matLoader.release();
+        texLoader.release();
         skeleton = null;
         animControl = null;
         animList = null;

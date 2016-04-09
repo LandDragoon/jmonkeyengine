@@ -9,11 +9,11 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 
-public class FbxTextureLoader {
+public class FbxTextureLoader implements FbxElementLoader {
     private Map<Long, TextureData> texDataMap = new HashMap<Long, TextureData>();
     private Map<Long, Texture> texMap = new HashMap<Long, Texture>();
-    
-    public void loadTexture(FbxElement element) {
+        
+    public void load(FbxElement element) {
         long id = (Long) element.properties.get(0);
         String path = (String) element.properties.get(1);
         String type = (String) element.properties.get(2);
@@ -46,11 +46,11 @@ public class FbxTextureLoader {
         }
     }
     
-    public Map<Long, Texture> getTextureMap() {
+    public Map<Long, Texture> getObjectMap() {
         return texMap;
     }
     
-    public void releaseTextures() {
+    public void release() {
         texDataMap.clear();
         texMap.clear();
     }
