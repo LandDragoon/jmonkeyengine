@@ -40,7 +40,7 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.plugins.fbx.SceneLoader.PropertyLink;
+import com.jme3.scene.plugins.fbx.loaders.PropertyLink;
 import com.jme3.scene.plugins.fbx.file.FbxElement;
 import com.jme3.texture.Texture;
 
@@ -101,7 +101,7 @@ public class FbxMaterialLoader {
         }
     }
     
-    public void linkMaterials(Map<Long, Texture> texMap, Map<Long, List<PropertyLink>> propMap) {
+    public void linkTexturesToMaterials(Map<Long, Texture> texMap, Map<Long, List<PropertyLink>> propMap) {
         // Build materials        
         createMaterials();
         
