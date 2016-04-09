@@ -64,9 +64,6 @@ public class FbxElement {
 	 */
 	public char[] propertiesTypes;
 	public List<FbxElement> children = new ArrayList<FbxElement>();
-	private final HashMap<String, HashMap<String, Class<? extends FbxObject>>> fbxElToObject = new
-            HashMap<String, HashMap<String, Class<? extends FbxObject>>>();
-	
 	public FbxElement(int propsCount) {
 		this.properties = new ArrayList<Object>(propsCount);
 		this.propertiesTypes = new char[propsCount];
